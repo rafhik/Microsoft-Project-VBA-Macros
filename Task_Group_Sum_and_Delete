@@ -1,0 +1,81 @@
+Sub Group_Sum_Delete_Def() 'En el icono de la macro pondremos Group&Sum&Delete
+
+ '''Teniendo varias celdas seleccionadas suma el importe de las mediciones
+ '''(Campo Número1) y de los costes (Campo Costo) y los introduce en los valores
+ ''' de la primera tarea seleccionada habiendo borrado los valores del resto
+ ''' y las tareas que no sirven
+ Dim t As Task, Medicion As Double, Texto As String, Importe As Double
+ Dim Message, Title, Default, MyValue
+ Dim AA As Variant
+ Dim Counter As Integer
+ 
+ 'Creamos una lista para almacenar las Id de las tareas con objeto de poder borrar las que sobran
+ Dim list As Object
+ Set list = CreateObject("System.Collections.ArrayList")
+
+ 'Datos para InputBox
+ Title = "Valores"    ' Titulo de InputBox.
+ 'Creamos un valor a la variable TNew lo suficientemente grande para luego poder comparar los valores que va adquiriendo
+ TNew = 1000000
+ 'Iteramos por las tareas de la seleccion
+ For Each t In ActiveSelection.Tasks
+    'Cojemos el identificador exclusivo porque si borramos alguna tarea
+    'descuadra todo al no ser correlativo
+    Refe2 = t.ID
+    'Añadimos a la lista el ID
+    list.Add Refe2
+    'Vamos sumando las mediciones de cada tarea y el coste
+    Medicion = Medicion + t.Number1
+    Importe = Importe + t.Cost
+    'Borramos la medicion de la tarea que acabamos de sumar y dejamos su coste a 0
+    SetTaskField Field:="Número1", Value:="", TaskID:=Refe2
+    SetTaskField Field:="Costo", Value:=0, TaskID:=Refe2
+    'Recuperamos el texto del nombre de la primera tarea
+    If Refe2 < TNew Then
+        TNew = Refe2
+        Texto = t.Name
+    Else
+        TNew = TNew
+    End If
+    'Borramos el texto del nombre de la tarea que acabamos de sumar
+    SetTaskField Field:="Nombre", Value:="", TaskID:=Refe2
+ Next t
+ 'Introducimos la medicion y el coste total en la partida mas arriba de todas las
+ 'seleccionadas pudiendo establecer nosostros el nombre de la tarea
+ SetTaskField Field:="Número1", Value:=Medicion, TaskID:=TNew
+ SetTaskField Field:="Costo", Value:=Importe, TaskID:=TNew
+ Message = "INTRODUCE EL NOMBRE QUE TENDRÁ LA TAREA RESULTADO" & vbCrLf & _
+ "La suma de las mediciones es: " & CStr(Medicion) & vbCrLf & _
+ "La suma de los importes es: " & CStr(Importe)   ' Mensaje a mostrar.
+ Default = Texto    ' Nombre por defecto (de la primera fila seleccionada).
+ MyValue = InputBox(Message, Title, Default)
+ SetTaskField Field:="Nombre", Value:=MyValue, TaskID:=TNew
+ 'MsgBox Medicion & vcvl & Texto & vclf & Mediciones
+ 
+ 'Ordenamos la lista y quitamos el primer valor que será la unica tarea que
+ 'no borraremos, el resto las seleccionaremos y las borraremos
+ 
+ list.Sort
+ list.RemoveAt 0
+ list.Reverse
+ 
+ 'Recorremos toda la lista, la primera vez seleccionaremos la tarea como nueva selección
+ 'El reto de veces iremos añadiendo la tarea a la selección
+ Counter = 0
+    For Each AA In list
+        If Counter = 0 Then
+            'MsgBox AA
+            SelectRow Row:=AA, RowRelative:=False, Add:=False
+            Counter = Counter + 1
+        Else
+            'MsgBox AA
+            SelectRow Row:=AA, RowRelative:=False, Add:=True
+            Counter = Counter + 1
+        End If
+    Next AA
+ 
+ 'Borramos las tareas seleccionadas
+ EditDelete
+ 'Dejamos como selección el campo nombre de la tarea que ha recibido la suma de los valores
+ SelectTaskField Row:=TNew, Column:="Nombre", RowRelative:=False, Add:=False
+End Sub
