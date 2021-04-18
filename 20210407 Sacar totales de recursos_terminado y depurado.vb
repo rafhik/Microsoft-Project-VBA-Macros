@@ -301,7 +301,7 @@ If listrecmonth.Count > 1 Then
     End With
 End If
 
-If listrecyear.Count > 1 Then
+If listrecyear.Count > 0 Then
     Let Copyrange = "O1" & ":" & "O" & listrecyear.Count + 1
     s.Range(Copyrange).Select
     
