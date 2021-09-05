@@ -1,0 +1,101 @@
+Sub Info()
+'''Extrae información de las tareas seleccionadas y lo muestra en una ventana
+
+'Declaramos variables
+Dim T As Task, R As Assignment
+Dim A As String, B As String, C As String, D As String, E As String, F As String, _
+G As String, H As String, I As String, J As String, K As String, HH As String
+Dim SALTO As String, SEPARD As String, SEPARAD2 As String
+Dim CR As String, FR As String, AVAN As String, DR As String
+Dim EstadoC As String, EstadoF As String
+
+
+'Separadores de contenido
+SALTO = vbCrLf & vbCrLf
+SEPARAD = "========================================" & vbCrLf
+SEPARAD2 = "***************************************************************" & vbCrLf
+
+'Recorremos todas las tareas seleccionadas para obtener información
+For Each T In ActiveSelection.Tasks
+    'Nombre de la tarea
+    A = "Tarea: " & vbTab & vbTab & T.Name
+    'Duración de la tarea (convertida desde minutos a días)
+    B = "Duración : " & vbTab & (T.Duration / 8) / 60 & " días" & vbTab & vbTab & "Duración prev.: " & (T.BaselineDuration / 8) / 60 & " días"
+    'Comienzo y comienzo de la línea base
+    C = "Comienzo: " & vbTab & DateFormat(T.Start, 1) & vbTab & vbTab & "Comienzo prev.: " & DateFormat(T.BaselineStart, 1)
+    'Fin y Fin de la línea base
+    E = "Fin: " & vbTab & vbTab & DateFormat(T.Finish, 1) & vbTab & vbTab & "Fin prev.: " & DateFormat(T.BaselineFinish, 1)
+    'Coste
+    G = "Coste: " & vbTab & vbTab & T.Cost & "Euros"
+    'Recursos de la tarea
+    'Inicializamos la variable con un valor vacío
+    HH = ""
+    'Recorremos todos los recursos de la tarea
+    For Each R In T.Assignments
+        'En cada pasada del bucle añadimos lo obtenido en la anterior
+        HH = HH & R.ResourceName & " " & "[" & R.Units & "]" & ", "
+    Next R
+    H = "Recursos:" & vbTab & vbTab & Left(HH, Len(HH) - 2)
+    'Ver si la tarea pertenece a algún Sprint
+    I = "Sprint: " & vbTab & vbTab & T.Sprint
+    'Tareas sucesoras
+    J = "Sucesoras: " & vbTab & T.Successors
+    'Tareas predecesoras
+    K = "Predecesoras: " & vbTab & T.Predecessors
+    
+    
+    'Comprobamos si tiene fecha de comienzo
+    If T.ActualStart <> "NOD" Then
+        CR = "Comienzo real: " & vbTab & T.ActualStart
+    Else
+        CR = "Comienzo real: " & vbTab & "Sin Comenzar"
+    End If
+    
+    'Comprobamos si tiene fecha de fin
+    If T.ActualFinish <> "NOD" Then
+        FR = "Fin real: " & vbTab & vbTab & T.ActualFinish
+    Else
+        FR = "Fin real: " & vbTab & vbTab & "Sin Finalizar"
+    End If
+    
+    'Almacenamos el % de avance y la duración real
+    AVAN = "% completado: " & vbTab & T.PercentComplete & "%"
+    DR = "Duración real: " & vbTab & (T.ActualDuration / 8) / 60 & " días"
+    
+    'Comprobamos si debería de haber comenzado
+    Select Case T.BaselineStart
+    Case Is < T.Start
+        EstadoC = "[Comienzo Retrasado]"
+    Case T.Start
+        EstadoC = "[Comienzo On Time]"
+    Case Is > T.Start
+        EstadoC = "[Comienzo Adelantado]"
+    End Select
+    
+    'Comprobamos si debería de haber finalizado
+    Select Case T.BaselineFinish
+    Case Is < T.Finish
+        EstadoF = "[Fin Retrasado]"
+    Case T.Finish
+        EstadoF = "[Fin On Time]"
+    Case Is > T.Finish
+        EstadoF = "[Fin Adelantado]"
+    End Select
+    
+    'Vemos si a día de hoy debería de haber empezado
+    If Now() > T.BaselineStart Then
+        EstadoC = "[Retrasada - Debería de haber Comenzado]"
+    End If
+    
+    'Vemos si a día de hoy debería de haber finalizado
+    If Now() > T.BaselineFinish Then
+        EstadoF = "[Retrasada - Debería de haber Finalizado]"
+    End If
+    
+    
+    'Volcado de información
+    MsgBox (SEPARAD & A & vbCrLf & SEPARAD & SALTO & B & SALTO & C & SALTO & E & SALTO & G & SALTO & H _
+    & SALTO & I & SALTO & J & SALTO & K & SALTO & SEPARAD2 & SALTO & CR & SALTO & EstadoC & SALTO & FR & SALTO & EstadoF & SALTO & AVAN & SALTO & DR)
+Next T
+
+End Sub
