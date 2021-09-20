@@ -1,0 +1,61 @@
+Sub sucesoras_inteligentes()
+Dim T As Task, TA As Task
+Dim Q As String, Cad As String
+Dim Suc As Task
+
+
+'Recorremos las tareas de la selección
+For Each T In ActiveSelection.Tasks
+    Cad = ""
+    'Preguntamos el texto a buscar o contener
+    Q = InputBox("A la tarea >>>>>>>> " & T.Name & vbCrLf & " le sucederán las tareas cuyo nombre contenga..." & vbCrLf & vbCrLf & _
+    vbCrLf & "---Introduzca texto a contener---", "Concepto a buscar")
+    If Q <> "" Then
+        'Recorremos todas las tareas del proyecto
+        For Each TA In ActiveProject.Tasks
+            'Si el texto a buscar está en la tarea
+            If InStr(TA.Name, Q) > 0 Then
+                If T.SuccessorTasks.Count > 0 Then
+                    'Recorreremos las sucesoras ya existentes
+                    'Iniciamos un contador para que sume 1 si la sucesora coincide
+                    contador = 0
+                    For Each Suc In T.SuccessorTasks
+                        'Si la tarea que deberíamos incluir ya esta entre las sucesoras incrementamos el contador
+                        If Suc.ID = TA.ID Then
+                            contador = contador + 1
+                        'Sino el contador sigue igual
+                        Else
+                            contador = contador
+                        End If
+                    Next Suc
+                    'Si el resultado ha sido que la tarea estaba ya, enotnces no tenemos que añadirla
+                    If contador > 0 Then
+                        Cad = Cad
+                    'Pero si no estaba entonces si tenemos que añadirla
+                    Else
+                        Cad = TA.ID & ";" & Cad
+                    End If
+                    'Terminada la comprobación reseteamos el contador
+                    contador = 0
+                'Si no tiene sucesoras, como cumple la condición la añadimos
+                Else
+                    'Debug.Print "No tiene sucesoras"
+                    Cad = TA.ID & ";" & Cad
+                    
+                End If
+            End If
+        Next TA
+        
+        'Si nuestro valor Cad tiene contenido se lo añadiremos a la tarea
+        'Antes nos aseguraremos de que no borramos el contenido existente
+        If Len(Cad) > 0 Then
+            If T.SuccessorTasks.Count > 0 Then
+                T.Successors = Left(Cad, Len(Cad) - 1) & ";" & T.Successors
+            Else
+                T.Successors = Left(Cad, Len(Cad) - 1)
+            End If
+        End If
+    End If
+Next T
+
+End Sub
