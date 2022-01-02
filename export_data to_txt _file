@@ -1,0 +1,62 @@
+Sub Project_to_Sketchup()
+Dim T As Task, Dic As String
+
+'Recopilamos la información a exportar
+Dic = ""
+Dic = Dic & "general" & "," & Year(ActiveProject.ProjectStart) & "," & Month(ActiveProject.ProjectStart) & "," & Day(ActiveProject.ProjectStart) _
+    & "," & Year(ActiveProject.ProjectFinish) & "," & Month(ActiveProject.ProjectFinish) & "," & Day(ActiveProject.ProjectFinish) & vbCrLf
+
+For Each T In ActiveProject.Tasks
+If T.Summary Then
+    'Do nothing
+Else
+    Dic = Dic & T.Text16 & "," & Year(T.Start) & "," & Month(T.Start) & "," & Day(T.Start) _
+    & "," & Year(T.Finish) & "," & Month(T.Finish) & "," & Day(T.Finish) & vbCrLf
+End If
+Next T
+Debug.Print Dic
+
+
+''' VOLCADO DE DATOS A TXT
+Dim TextFile As Integer
+Dim FilePath As String
+
+'Crea una ruta con mismo folder que el project y nombre de archivo txt
+Dim DividedPath As Variant, NameToReplacePosition As Integer
+Dim NameToReplace As String, ReplacedNameInput As String, ReplacedName As String
+
+
+ReplacedNameInput = InputBox("¿Que nombre quieres que tenga el archivo?" & vbCrLf & _
+" << Recuerda que se guardará en la misma ruta que el archivo de Project >>", "Nombre de Archivo", "fechas")
+
+
+If StrPtr(ReplacedNameInput) = 0 Then
+    MsgBox ("¡Cancelado!")
+    Exit Sub
+ElseIf ReplacedNameInput = vbNullString Then
+    MsgBox ("¡No has introducido nada, inténtalo de nuevo!")
+    Exit Sub
+Else
+    ReplacedName = ReplacedNameInput & ".txt"
+    DividedPath = Split(ActiveProject.FullName, "\")
+    NameToReplacePosition = UBound(DividedPath)
+    NameToReplace = DividedPath(NameToReplacePosition)
+    FilePath = Replace(ActiveProject.FullName, NameToReplace, ReplacedName)
+End If
+
+
+'Determina el siguiente numero valido para la funcion FileOpen
+  TextFile = FreeFile
+
+'Abre el archivo de texto
+  Open FilePath For Output As TextFile
+
+'Escribe texto
+  Print #TextFile, Dic
+  
+'Guarda & Cierra archivo de texto
+  Close TextFile
+
+returnvalue = Shell("notepad.exe " & FilePath, vbNormalFocus)
+
+End Sub
