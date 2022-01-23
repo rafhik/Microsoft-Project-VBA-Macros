@@ -1,0 +1,133 @@
+Private Sub CommandButton1_Click()
+Dim A As String
+A = ""
+B = ""
+For i = 0 To ListBox1.ListCount - 1
+    If ListBox1.Selected(i) = True Then
+        A = A & ";" & i + 1
+    End If
+Next i
+For i = 0 To ListBox2.ListCount - 1
+    If ListBox2.Selected(i) = True Then
+        B = B & ";" & ListBox2.List(i)
+    End If
+Next i
+
+
+If Left(A, 1) = ";" Then
+A = Right(A, Len(A) - 1)
+End If
+If Left(B, 1) = ";" Then
+B = Right(B, Len(B) - 1)
+End If
+
+SelectTaskField Row:=0, Column:="Nombre"
+
+
+If ActiveCell.Text <> "" Then
+    MsgBox ("Por favor seleccione una línea vacía e inicie de nuevo")
+    Unload Me
+Else
+    SetTaskField Field:="Nombre", Value:=TextBox1.Value
+    If TextBox2.Value <> "" And IsNumeric(TextBox2.Value) Then
+        If OptionButton3.Value = True Then
+            SetTaskField Field:="Duración", Value:=TextBox2.Value & "mss"
+        ElseIf OptionButton2.Value = True Then
+            SetTaskField Field:="Duración", Value:=TextBox2.Value & "sem"
+        Else
+            SetTaskField Field:="Duración", Value:=TextBox2.Value & "d"
+        End If
+    End If
+    If TextBox3.Value <> "" And IsNumeric(TextBox3.Value) Then
+        SetTaskField Field:="Costo", Value:=CInt(TextBox3.Value)
+    End If
+    SetTaskField Field:="Predecesoras", Value:=A
+    SetTaskField Field:="Nombres de los recursos", Value:=B
+End If
+Unload Me
+
+End Sub
+Private Sub CommandButton2_Click()
+Dim A As String
+A = ""
+B = ""
+For i = 0 To ListBox1.ListCount - 1
+    If ListBox1.Selected(i) = True Then
+        A = A & ";" & i + 1
+    End If
+Next i
+For i = 0 To ListBox2.ListCount - 1
+    If ListBox2.Selected(i) = True Then
+        B = B & ";" & ListBox2.List(i)
+    End If
+Next i
+
+If Left(A, 1) = ";" Then
+    A = Right(A, Len(A) - 1)
+End If
+If Left(B, 1) = ";" Then
+    B = Right(B, Len(B) - 1)
+End If
+
+SelectTaskField Row:=0, Column:="Nombre"
+If ActiveCell.Text <> "" Then
+    MsgBox ("Por favor seleccione una línea vacía e inicie de nuevo")
+    Unload Me
+Else
+    SetTaskField Field:="Nombre", Value:=TextBox1.Value
+    If TextBox2.Value <> "" And IsNumeric(TextBox2.Value) Then
+        If OptionButton3.Value = True Then
+            SetTaskField Field:="Duración", Value:=TextBox2.Value & "mss"
+        ElseIf OptionButton2.Value = True Then
+            SetTaskField Field:="Duración", Value:=TextBox2.Value & "sem"
+        Else
+            SetTaskField Field:="Duración", Value:=TextBox2.Value & "d"
+        End If
+    End If
+    If TextBox3.Value <> "" And IsNumeric(TextBox3.Value) Then
+        SetTaskField Field:="Costo", Value:=CInt(TextBox3.Value)
+    End If
+    SetTaskField Field:="Predecesoras", Value:=A
+    SetTaskField Field:="Nombres de los recursos", Value:=B
+End If
+SelectTaskField Row:=1, Column:="Nombre"
+Unload Me
+UserForm1.Show
+
+End Sub
+
+Private Sub CommandButton3_Click()
+    Unload Me
+End Sub
+
+Private Sub CommandButton4_Click()
+For i = 0 To ListBox1.ListCount - 1
+    ListBox1.Selected(i) = False
+Next i
+End Sub
+Private Sub CommandButton5_Click()
+For i = 0 To ListBox2.ListCount - 1
+    ListBox2.Selected(i) = False
+Next i
+End Sub
+
+Private Sub UserForm_Initialize()
+
+Dim T As Task, R As Resource
+
+For Each T In ActiveProject.Tasks
+    If T.Summary Then
+        ListBox1.AddItem (T.WBS & " " & T.Name)
+    Else
+        ListBox1.AddItem ("    " & T.WBS & " " & T.Name)
+    End If
+Next T
+
+For Each R In ActiveProject.Resources
+    ListBox2.AddItem (R.Name)
+Next R
+
+ListBox1.MultiSelect = fmMultiSelectMulti
+ListBox2.MultiSelect = fmMultiSelectMulti
+
+End Sub
